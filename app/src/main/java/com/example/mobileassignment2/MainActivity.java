@@ -1,12 +1,7 @@
 package com.example.mobileassignment2;
 
-import android.content.Context;
-import android.content.res.AssetManager;
+import android.location.Geocoder;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,36 +9,54 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    ArrayList<String> latitude = new ArrayList<>();
-    ArrayList<String> longitude = new ArrayList<>();
+public class MainActivity extends AppCompatActivity{
+    //ArrayList<location> coordinatesList = new ArrayList<>();
+    //List<Address> addresses;
+    String filename = "coordinates.JSON";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button btn = (Button) findViewById(R.id.button);
+        DBHandler db = new DBHandler(this);
 
-        List<location> locations = coordinateParser.readLocationsFromJson(this, "coordinates.JSON");
+        try {
+            InputStream inputStream = this.getAssets().open(filename);
+            int size = inputStream.available();
+            byte[] buffer = new byte[size];
+            inputStream.read(buffer);
+            inputStream.close();
+            String json = new String(buffer, "UTF-8");
+            String address;
 
-        // Access latitude and longitude values from the list of Location objects
-        for (location location : locations) {
-            latitude.add(Double.toString(location.getLatitude()));
-            longitude.add(Double.toString(location.getLongitude()));
+            JSONArray jsonArray = new JSONArray(json);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                double latitude = jsonObject.getDouble("latitude");
+                double longitude = jsonObject.getDouble("longitude");
+
+                //location coordinates = new location(latitude, longitude);
+                //coordinatesList.add(coordinates);
+
+                // Perform Geocoding to get address
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                address = geocoder.getFromLocation(latitude, longitude, 1).toString();
+
+                db.addNewAddress(address, String.valueOf(latitude), String.valueOf(longitude));
+            }
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
         }
-
-    }
-
-    @Override
-    public void onClick(View v) {
-
     }
 }
 
