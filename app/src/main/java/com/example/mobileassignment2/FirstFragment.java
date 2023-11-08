@@ -5,6 +5,7 @@ import android.location.Geocoder;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +21,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,6 +37,7 @@ public class FirstFragment extends Fragment {
     private FragmentFirstBinding binding;
     DBHandler dbHandler;
     Adapter adapter;
+    List<Location> locations;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -81,8 +85,10 @@ public class FirstFragment extends Fragment {
                              Bundle savedInstanceState) {
         /// Inflate the layout for this fragment
         binding = FragmentFirstBinding.inflate(getLayoutInflater());
+        binding.searchBar.clearFocus();
+        binding.addressList.setScrollbarFadingEnabled(false);
 
-        List<Location> locations = dbHandler.getLocations();
+        locations = dbHandler.getLocations();
 
         binding.addressList.setLayoutManager(new LinearLayoutManager(getActivity()));
         adapter = new Adapter(getActivity(),locations);
@@ -100,5 +106,39 @@ public class FirstFragment extends Fragment {
                 NavHostFragment.findNavController(FirstFragment.this).navigate(R.id.action_firstFragment_to_secondFragment);
             }
         });
+
+        binding.searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterList(newText);
+                return false;
+            }
+        });
+    }
+
+    private void filterList(String text) {
+        List<Location> filteredList = new ArrayList<>();
+        List<Location> empty = new ArrayList<>();
+
+        for(Location item: locations){
+            if(item.getAddress().toLowerCase().contains(text.toLowerCase())){
+                filteredList.add(item);
+            }
+
+            if(filteredList.isEmpty()){
+                binding.addressList.setLayoutManager(new LinearLayoutManager(getActivity()));
+                adapter = new Adapter(getActivity(),empty);
+                binding.addressList.setAdapter(adapter);
+            }else{
+                binding.addressList.setLayoutManager(new LinearLayoutManager(getActivity()));
+                adapter = new Adapter(getActivity(),filteredList);
+                binding.addressList.setAdapter(adapter);
+            }
+        }
     }
 }

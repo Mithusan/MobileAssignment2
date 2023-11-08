@@ -44,6 +44,32 @@ public class DBHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public boolean checkExist(String address){
+        // array of columns to fetch
+        String[] columns = {COLUMN_ID};
+        SQLiteDatabase db = this.getReadableDatabase();
+        // selection criteria
+        String selection = COLUMN_ADDRESS + " = ?";
+        // selection argument
+        String[] selectionArgs = {address};
+        // query user table with condition
+
+        Cursor cursor = db.query(TABLE_NAME, //Table to query
+                columns,                    //columns to return
+                selection,                  //columns for the WHERE clause
+                selectionArgs,              //The values for the WHERE clause
+                null,                       //group the rows
+                null,                      //filter by row groups
+                null);                      //The sort order
+        int cursorCount = cursor.getCount();
+        cursor.close();
+        db.close();
+        if (cursorCount > 0) {
+            return true;
+        }
+        return false;
+    }
+
     public void addNewAddress(String address, String latitude, String longitude){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -51,10 +77,11 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(COLUMN_ADDRESS, address);
         values.put(COLUMN_LATITUDE, latitude);
         values.put(COLUMN_LONGITUDE, longitude);
-
         db.insert(TABLE_NAME, null, values);
+
         db.close();
     }
+
     public List<Location> getLocations(){
         List<Location> locations = new ArrayList<>();
         String query = "SELECT * FROM " + TABLE_NAME +" ORDER BY "+ COLUMN_ID +" DESC";

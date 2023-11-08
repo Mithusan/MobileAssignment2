@@ -45,8 +45,10 @@ public class MainActivity extends AppCompatActivity{
 
                 Address address = addresses.get(0);
                 String addressString = address.getAddressLine(0);
-
-                dbHandler.addNewAddress(addressString, String.valueOf(latitude), String.valueOf(longitude));
+                boolean exist = dbHandler.checkExist(addressString);
+                if (!exist) {
+                    dbHandler.addNewAddress(addressString, String.valueOf(latitude), String.valueOf(longitude));
+                }
             }
         } catch (IOException | JSONException e) {
             e.printStackTrace();
