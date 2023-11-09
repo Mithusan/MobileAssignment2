@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
         DBHandler dbHandler = new DBHandler(this);
 
+        //Adds 50 Entries from coordinates.JSON to the Database
         try {
             InputStream inputStream = this.getAssets().open(filename);
             int size = inputStream.available();
@@ -46,6 +47,9 @@ public class MainActivity extends AppCompatActivity{
                 Address address = addresses.get(0);
                 String addressString = address.getAddressLine(0);
                 boolean exist = dbHandler.checkExist(addressString);
+
+                //It will add only if the entry does not Exists
+                //Prevents program from entering same 50 coords whenever activity is launched
                 if (!exist) {
                     dbHandler.addNewAddress(addressString, String.valueOf(latitude), String.valueOf(longitude));
                 }
